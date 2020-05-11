@@ -38,6 +38,13 @@ class TextileConverter():
             text = name
 
         name = self.normalize(name).replace(' ', '_')
+        # Strip namespace from links. Links to pages in other projects are
+        # (as far as I know) not possible in GitLab other than by using full
+        # URLs
+        parts = name.split(':')
+        if len(parts) > 1:
+            name = ':'.join(parts[1:])
+
         return '[{}]({})'.format(text, name)
 
     def normalize(self, title):
