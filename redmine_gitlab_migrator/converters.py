@@ -200,6 +200,10 @@ def convert_issue(redmine_api_key, redmine_issue, redmine_user_index, gitlab_use
         labels.append(redmine_issue['status']['name'])
     if (redmine_issue.get('priority')):
         labels.append(redmine_issue['priority']['name'])
+    if (redmine_issue.get('custom_fields')):
+        for cf in redmine_issue['custom_fields']:
+            if cf['name'] == 'original_project':
+                labels.append('redmineproject:{}'.format(cf['value']))
 
     attachments = redmine_issue.get('attachments', [])
     due_date = redmine_issue.get('due_date', None)
