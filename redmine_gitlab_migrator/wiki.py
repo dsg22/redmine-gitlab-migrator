@@ -26,7 +26,7 @@ class TextileConverter():
         self.regexAnyMacro = re.compile(r'\{\{(.*)\}\}')
         self.regexCodeBlock = re.compile(r'\A  ((.|\n)*)', re.MULTILINE)
         self.regexCollapse = re.compile(r'({{collapse\s?\(([^)]+)\))(.*)(}})', re.MULTILINE | re.DOTALL)
-        self.regexParagraph = re.compile(r'p(\(+|(\)+)?>?|=)?\.', re.MULTILINE | re.DOTALL)
+        self.regexParagraph = re.compile(r'^\s*p(\(+|(\)+)?>?|=)?\.', re.MULTILINE | re.DOTALL)
         self.regexCodeHighlight = re.compile(r'(<code\s?(class=\"(.*)\")?>).*(</code>)', re.MULTILINE | re.DOTALL)
         self.regexAttachment = re.compile(r'attachment:[\'\"“”‘’„”«»](.*)[\'\"“”‘’„”«»]', re.MULTILINE | re.DOTALL)
 
