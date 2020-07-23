@@ -183,7 +183,7 @@ def perform_migrate_pages(args):
     redmine_project = RedmineProject(args.redmine_project_url, redmine)
 
     # Get copy of GitLab wiki repository
-    wiki = WikiPageConverter(args.gitlab_wiki)
+    wiki = WikiPageConverter(args.gitlab_wiki, redmine)
 
     # convert all pages including history
     pages = []

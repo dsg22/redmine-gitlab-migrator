@@ -4,6 +4,7 @@ import pypandoc
 import logging
 import re
 import unicodedata
+import os
 
 log = logging.getLogger(__name__)
 
@@ -126,9 +127,10 @@ class WikiPageConverter():
     http://www.redmine.org/projects/redmine/wiki/RedmineTextFormattingTextile
     """
 
-    def __init__(self, local_repo_path):
+    def __init__(self, local_repo_path, redmine):
         self.repo_path = local_repo_path
         self.repo = Repo(local_repo_path)
+        self.redmine = redmine
 
         # make sure we use at least version 17 of pandoc
         # TODO: fix this test, it will not work properly for version 1.2 or 1.100
@@ -159,15 +161,36 @@ class WikiPageConverter():
         text = text.replace("[[PageOutline]]", "")
         text = text.replace("{{>toc}}", "")
 
+        for attachment in redmine_page['attachments']:
+            att_rel_path = 'redmine_attachments/{}'.format(attachment['id'])
+            att_rel_file = os.path.join(att_rel_path, attachment['filename'])
+            att_full_path = os.path.join(self.repo_path, att_rel_path)
+            req = self.redmine.get_raw(attachment['content_url'])
+            if req.status_code != 200:
+                log.error("Error fetching wiki attachment {}, got status code {}. Skipping.".format(attachment['content_url'], req.status_code))
+                pass
+
+            os.makedirs(att_full_path, exist_ok=True)
+            with open(os.path.join(att_full_path, attachment['filename']), 'wb') as f:
+                f.write(req.content)
+
+            # Rewrite redmine attachment links to regular relative textile links
+            text = re.sub(r'attachment:[\'\"“”‘’„”«»]?({})[\'\"“”‘’„”«»]?'.format(re.escape(attachment['filename'])), r'"{}":{}'.format(attachment['filename'], att_rel_file), text)
+            # Fix path for textile image includes
+            text = re.sub(r'!({})!'.format(re.escape(attachment['filename'])), r'!{}!'.format(att_rel_file), text)
+
+            self.repo.index.add([att_rel_file])
+
         text = self.textile_converter.convert(text)
+
+        #text = re.sub(r'attachment:[\'\"“”‘’„”«»](.*)[\'\"“”‘’„”«»]', r'[\1](\1)', text)
+        #text = re.sub(r'attachment:([^\s]*)', r'[\1](\1)', text)
 
         # save file with author/date
         file_name = title + ".md"
         with open(self.repo_path + "/" + file_name, mode='wt', encoding='utf-8') as fd:
             print(text.replace('\n', "\n"), file=fd)
 
-        # todo: check for attachments
-        # todo: upload attachments
 
         if redmine_page["comments"]:
             commit_msg = redmine_page["comments"] + " (" + title + " v" + str(redmine_page["version"]) + ")";

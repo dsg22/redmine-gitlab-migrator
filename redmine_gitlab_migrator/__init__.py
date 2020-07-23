@@ -39,6 +39,15 @@ class APIClient:
         log.debug('HTTP RESPONSE {}'.format(ret))
         return ret
 
+    def get_raw(self, *args, **kwargs):
+        log.debug('HTTP REQUEST {} {} {}'.format(
+            requests.get, args, kwargs))
+        kwargs = self.add_auth_headers(kwargs)
+        resp = requests.get(*args, **kwargs)
+        resp.raise_for_status()
+        log.debug('HTTP RESPONSE {}'.format(resp))
+        return resp
+
     def get(self, *args, **kwargs):
         return self._req(requests.get, *args, **kwargs)
 
