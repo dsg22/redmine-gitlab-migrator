@@ -162,15 +162,14 @@ def convert_issue(redmine_api_key, redmine_issue, redmine_user_index, gitlab_use
 
     issue_state = redmine_issue['status']['name']
 
+    close_text = ''
     if redmine_issue.get('closed_on', None):
         # quick'n dirty extract date
-        close_text = ', closed on {}'.format(redmine_issue['closed_on'][:10])
-        closed = True
-    elif issue_state.lower() in closed_states:
-        close_text = ', closed (state: {})'.format(issue_state)
+        close_text += ', closed on {}'.format(redmine_issue['closed_on'][:10])
+    if issue_state.lower() in closed_states:
+        close_text += ', closed (state: {})'.format(issue_state)
         closed = True
     else:
-        close_text = ''
         closed = False
 
     relations = redmine_issue.get('relations', [])
